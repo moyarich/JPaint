@@ -19,7 +19,7 @@ The IPaint Application does the following:
 
 [Composite Design Pattern](#compos)
 
-[Observer Design Pattern](#obser)
+[Observer Design Pattern](#observ)
 
 [Singleton Design Pattern](#sngl)
 
@@ -75,7 +75,9 @@ The composite pattern was used in the application because the commands needed to
 
 This pattern solved the problem where the difference between individual shapes and shapes that are grouped together needed to be ignored.
 
-##Observer Design Pattern
+<a name="observ"/>
+
+## Observer Design Pattern
 The Observer defines a one-to-many relationship so that when one object changes state, the others are notified and updated
 
 The observer pattern is used in this project to notify the paintCanvas when changes were made to the shapes. The paintCanvas then redraws the shapes on the canvas

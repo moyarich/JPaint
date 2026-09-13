@@ -1,138 +1,197 @@
-# JPaint developer guide — JavaFX
+# JPaint developer guide
 
-## Prerequisites
+`main` contains the JavaFX implementation. The original Swing app is preserved
+on `swing-code`; its launch and build instructions live on that branch.
 
-Use a JDK 17 or newer; JDK 21 is recommended with the pinned JavaFX 21.0.8 release.
-The launcher detects JAVA_HOME, registered macOS JDKs, Homebrew OpenJDK, or PATH.
-It validates both java and javac. Packaging also needs jar and jpackage.
+## Java and JavaFX configuration
 
-On macOS with Homebrew:
+The launcher validates both `java` and `javac`, checking these locations in order:
+
+1. `JAVA_HOME`, if configured and valid.
+2. Registered macOS JDKs reported by `/usr/libexec/java_home`.
+3. Homebrew OpenJDK installations on macOS.
+4. The JDK available on `PATH`.
+
+An invalid `JAVA_HOME` produces a warning and automatic detection continues.
+Use `./run.sh java` to see which Java tools were selected. This command reports
+Java only; build/run commands also report the selected JavaFX SDK.
+
+| JavaFX setup | JDK to use |
+| --- | --- |
+| Installed/cached JavaFX 26.0.2 on this Mac | JDK 26 |
+| Default JavaFX 21.0.8 fallback | JDK 21 recommended; JDK 17+ supported |
+| Explicit `JAVAFX_HOME` | A JDK compatible with that SDK |
+
+`/usr/libexec/java_home` is a command, **not a directory**. Do not `cd` to it.
+For the registered JDK 26 installation on this Mac:
 
 ```bash
-brew install openjdk@21
+export JAVA_HOME="$(/usr/libexec/java_home -v 26)"
+unset JAVAFX_HOME
 ./run.sh java
+./run.sh
 ```
 
-`/usr/libexec/java_home` is a command, not a folder. Do not use `cd` with it.
-For a registered JDK, optionally set:
+### SDK selection and architecture
+
+The launcher uses an explicit `JAVAFX_HOME` first. Otherwise it recognizes
+`/Library/Java/JavaVirtualMachines/javafx-sdk-26.0.2` when present, or downloads
+the pinned JavaFX 21.0.8 fallback from Gluon.
+
+The supplied system SDK contains **Intel (`x86_64`) native libraries**. With this
+Mac's Apple Silicon (`aarch64`) JDK, the launcher leaves the system folder alone
+and downloads the matching JavaFX 26.0.2 Apple Silicon SDK into `.javafx/`.
+An explicitly configured SDK with the wrong architecture is rejected with a
+clear message rather than silently replaced. Use `unset JAVAFX_HOME` to return
+to automatic selection.
+
+The selected SDK's `lib/javafx.properties` determines the packaging dependency
+version. JavaFX jmods must match that version. The launcher checks that the
+selected Java runtime can resolve the SDK modules before compiling.
+
+### Offline or explicit dependencies
+
+Set these to local installations for the same OS, architecture, and JavaFX version:
 
 ```bash
-export JAVA_HOME="$(/usr/libexec/java_home -v 21)"
+export JAVAFX_HOME=/path/to/javafx-sdk-26.0.2
+export JAVAFX_JMODS=/path/to/javafx-jmods-26.0.2
 ```
 
-## Run and build
+`JAVAFX_HOME` points to the SDK root containing `lib/`. `JAVAFX_JMODS` points
+directly to the folder containing `javafx.controls.jmod`. Only packaging needs
+jmods. First-time automatic downloads require `curl`, `unzip`, and Internet
+access; later builds reuse the ignored `.javafx/` cache.
+
+## Launch, build, and test
+
+From this checkout:
 
 ```bash
 cd /private/var/www/+ai-apps/JPaint
-./run.sh              # Compile and launch JavaFX Studio
+./run.sh              # Compile and launch
 ./run.sh build        # Compile only
-./run.sh test         # 26 model regression checks, no graphical desktop needed
-./run.sh smoke        # Native JavaFX UI/renderer/picker smoke checks
-./run.sh java         # Report detected Java tools without compiling
-./run.sh package      # Create a standalone app
-./run.sh menu         # Optional fzf menu, with a built-in Bash fallback
+./run.sh test         # Model regression checks; no display required
+./run.sh smoke        # JavaFX UI and interaction checks; desktop required
+./run.sh java         # Show Java tools without building
+./run.sh package      # Build a standalone app
+./run.sh menu         # Optional interactive menu
+./run.sh --help
 ```
 
-Scripts work from other directories and checkout paths with spaces. Use
-`bash run.sh` if execution permissions are missing. Bash, curl, and unzip are
-needed for automatic setup; no Maven or Gradle installation is necessary.
+Use your own checkout path if different. The root launcher delegates to
+`scripts/run.sh` and `scripts/run-app.sh`; dependency setup is in
+`scripts/javafx.sh`. Direct commands do not require `fzf`. The optional menu uses
+`fzf` when available and otherwise falls back to a Bash menu.
 
-First build downloads the platform-specific JavaFX SDK from Gluon into `.javafx/`.
-Packaging also downloads JavaFX jmods. Downloads are version-pinned and cached;
-the launcher exits on download failures. Network access is needed for first setup.
-For offline builds, supply matching local platform/architecture SDK and jmods:
+Scripts can be invoked from another directory and handle checkout paths with
+spaces. Use `bash run.sh` if executable permissions are missing; do not use `sh`
+because the scripts require Bash. No Maven or Gradle installation is needed.
+
+Compilation uses a fresh temporary directory before replacing `build/classes`,
+so switching between Swing and JavaFX does not retain stale compiled classes.
+
+### Validation
+
+`./run.sh test` runs 26 model checks covering movement, selection independence,
+nested groups, clipboard copies, repeated paste offsets, layer order, undo/redo,
+hit testing, reverse drags, and no-op handling. It does not initialize a GUI.
+
+`./run.sh smoke` starts JavaFX and checks rendering, the color wheel, mouse drawing,
+selection, movement, and undo/redo buttons. It writes these diagnostic renders,
+then exits:
+
+- `build/javafx-window.ppm`
+- `build/javafx-picker.ppm`
+
+To verify the bundled runtime after packaging on macOS:
 
 ```bash
-export JAVAFX_HOME=/path/to/javafx-sdk-21.0.8
-export JAVAFX_JMODS=/path/to/javafx-jmods-21.0.8
+./dist/JPaint.app/Contents/MacOS/JPaint --smoke-test
 ```
 
-The module is `jpaint`, main class `jpaint.Main`. JavaFX modules are supplied on
-the module path. IDE users should configure JDK 17+, the JavaFX SDK module path,
-`src/main/java` as sources and `src/main/resources` as resources. Follow the
-[official JavaFX setup guide](https://openjfx.io/openjfx-docs/) for IDE details.
-
-## Package and launch the app
+## Package the desktop app
 
 ```bash
 ./run.sh package
 open dist/JPaint.app
 ```
 
-On macOS, double-click `dist/JPaint.app` or move it to Applications. It includes
-Java and JavaFX; no separate runtime is needed. Quit any old app before opening
-the new one. Rebuilding preserves previous packages in `dist/previous.*`.
+Packaging requires a full JDK with `jar` and `jpackage`, plus matching JavaFX
+jmods. It produces a native application image containing Java, JavaFX, and JPaint.
+On macOS, double-click `dist/JPaint.app` or move it into Applications. End users
+do not need a separate JDK or SDK. Quit any running old version before opening
+the rebuilt app.
 
-Build on the destination OS and architecture. macOS Apple Silicon was validated;
-Linux/Windows platform paths are supported by the script but have not been tested
-here. Some platform/architecture combinations may need a manually supplied SDK.
-This is an app image, not a DMG or MSI installer. Distribution to other Macs
-requires appropriate signing/notarization; this build is for local use.
+Existing packages are preserved in unique `dist/previous.*` directories before
+replacement. `build/`, `.javafx/`, and `dist/` are ignored by Git. A Git checkout
+therefore contains source, not a prebuilt app.
 
-## Controls
+Build on the destination OS and architecture. macOS Apple Silicon has been
+validated. Linux and Windows paths are handled by the launcher but have not
+been tested here; some architectures require manually supplied dependencies.
+Packaging produces an app image, not a DMG/MSI installer. Signing and notarization
+for public macOS distribution are not configured.
 
-- Draw, Select, Move are directly accessible mode buttons.
-- Shape and Shading dropdowns change newly drawn shapes.
-- Primary/Secondary open a JavaFX color wheel. Angle selects hue; distance from
-  the center selects saturation. Brightness, RGB, hex, and swatches stay in sync.
-  Arrow keys on the wheel adjust hue/saturation. Apply commits; Cancel preserves
-  the previous color. Primary is fill or outline-only stroke; Secondary is the
-  stroke when using Fill and outline.
-- Drag to draw. Select by clicking the topmost shape or dragging an overlap region.
-- Move drags the current selection; one gesture is one undo step.
-- Group two or more objects; Ungroup releases one level of a nested group.
-- Copy/paste creates independent objects with successive 24-pixel offsets.
-- Escape cancels a gesture and clears selection.
+## App behavior
 
-Use Command on macOS, Ctrl elsewhere: Z undo; Shift+Z/Y redo; C copy; V paste;
-G group; Shift+G ungroup; A select all. Delete/Backspace deletes selected objects.
-The artboard is 1600 × 1000 and scrollable. Drawings are session-only; no persistence
-or file export is implemented.
+- **Draw:** select a shape and shading, then drag on the canvas. The preview tracks
+  the drag. Zero-width or zero-height shapes are ignored.
+- **Select:** click the topmost matching shape, or drag a region to select objects
+  whose bounds overlap it.
+- **Move:** drag the existing selection. One completed gesture is one undo step.
+- **Colors:** Primary and Secondary open the color wheel. Angle controls hue;
+  distance from the center controls saturation. Brightness, RGB, hex, and palette
+  choices stay synchronized. Arrow keys on the wheel adjust hue/saturation.
+  Apply color commits the choice; Cancel retains the previous color.
+- **Shading:** Primary is the fill, or the stroke for outline-only shapes.
+  Secondary is the stroke for Fill and outline. Changes affect new shapes.
+- **Groups:** group two or more selected objects; ungroup releases one nesting level.
+- **Clipboard:** copies are independent snapshots; successive pastes add 24-pixel offsets.
+- **History:** undo/redo restores artwork and selection. Empty edits preserve redo.
 
-## Implementation and validation
+The artboard is scrollable and measures 1600 × 1000. Drawings are stored only in
+memory. There is no save/open/export workflow. See [README.md](README.md) for
+keyboard shortcuts.
 
-- `src/main/java/jpaint/model`: immutable artwork, groups, selection, clipboard,
-  snapshot-based undo/redo. No UI dependencies.
-- `src/main/java/jpaint/ui`: JavaFX shape renderer and color wheel.
-- `src/main/java/jpaint/Main.java`: JavaFX layout, controls, and mouse/keyboard input.
-- `src/main/resources/jpaint/studio.css`: visual styling.
-- `tests/RegressionTest.java`: movement, nested grouping, layer order, history,
-  clipboard independence, hit testing, reverse drags, and no-op handling.
+## Source layout and IDE setup
 
-The smoke command starts JavaFX, renders artwork and the picker, writes diagnostic
-PPM renders to build/, and exits with an error on failed assertions. It requires a
-desktop session. With JDKs newer than 21, JavaFX 21 may print upstream deprecation
-warnings; prefer JDK 21 if those are distracting.
+| Path | Purpose |
+| --- | --- |
+| `src/main/java/jpaint/Main.java` | JavaFX app, layout, input, and smoke checks |
+| `src/main/java/jpaint/model/` | Immutable artwork and snapshot history; no UI dependencies |
+| `src/main/java/jpaint/ui/` | Shape renderer, color wheel, diagnostic snapshot writer |
+| `src/main/resources/jpaint/studio.css` | Interface styling |
+| `src/main/java/module-info.java` | Java module declaration |
+| `tests/RegressionTest.java` | Model regression checks |
+| `scripts/` | Dependency detection, build, launch, and packaging |
 
-## Branch history
+The module is `jpaint` and the main class is `jpaint.Main`. Configure the IDE with
+a compatible JDK and the selected JavaFX SDK on the module path. Mark
+`src/main/java` as sources and `src/main/resources` as resources. The scripts are
+the reference build workflow.
 
-`swing-code` preserves the prior complete Swing app. `javafx-rewrite` contains
-this implementation; `main` is promoted after validation. Switch branches with a
-clean working tree. Build, cache, and packaged app folders are ignored by Git and
-are shared when switching branches. Rebuild after switching; do not assume the
-app in dist/ matches the currently checked-out branch.
+## Troubleshooting
 
-## Installed JavaFX SDK on this Mac
+| Symptom | Action |
+| --- | --- |
+| `cd: not a directory: /usr/libexec/java_home` | Run the command directly, or use the `export JAVA_HOME` example above. |
+| No working JDK found | Install a JDK and set `JAVA_HOME` to its root, not its `bin` folder. |
+| SDK architecture mismatch | Match Intel/Apple Silicon SDK and JDK architectures; unset `JAVAFX_HOME` for automatic selection. |
+| Java cannot load SDK modules | Use a JDK compatible with the selected JavaFX version. |
+| No suitable graphics pipeline | Check SDK architecture first; launch in a graphical desktop session. |
+| JavaFX jmods version mismatch | Point `JAVAFX_JMODS` at matching jmods, or unset it to download the matching version. |
+| Download failure | Check connectivity and retry, or configure local dependencies. |
+| Old UI after rebuilding | Quit the running app and open the new `dist/JPaint.app`. |
 
-The launcher automatically prefers
-`/Library/Java/JavaVirtualMachines/javafx-sdk-26.0.2` when present, with the
-installed JDK 26. An explicit JAVAFX_HOME takes precedence. Other machines keep
-the JavaFX 21.0.8 download fallback. The SDK's javafx.properties determines the
-version of jmods used for packaging, so JavaFX versions are never mixed.
+## Published branches
 
-To let the launcher select the compatible installation:
+- `main`: current JavaFX app.
+- `javafx-rewrite`: JavaFX rewrite, promoted to `main` after validation.
+- `swing-code`: preserved complete Swing implementation.
 
-```bash
-unset JAVAFX_HOME
-./run.sh test
-./run.sh package
-```
-
-JavaFX 26 needs a newer JDK than the fallback SDK; use JDK 26. The launcher checks
-that the selected JDK can load the SDK before building.
-
-The supplied system SDK contains Intel libraries. On this Apple Silicon runtime,
-the launcher leaves that folder untouched and caches the Apple Silicon SDK of the
-same version instead. Do not explicitly export the Intel SDK as JAVAFX_HOME for
-an ARM JDK; an explicit architecture mismatch produces a clear error. Use
-`unset JAVAFX_HOME` and run the launcher to select the compatible cached version.
+All three branches are published to `origin` at `github.com/moyarich/JPaint`.
+Switch branches with a clean working tree and rebuild afterward. Generated apps
+and caches are shared across branch switches; `dist/` may still contain an app
+built from another branch. Historical `Project_information/` documents apply to
+the original project and have been retained as reference material.

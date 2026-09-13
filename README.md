@@ -1,93 +1,36 @@
-# JPaint Application
+# JPaint — JavaFX Studio
 
-Launch with `./run.sh` (JDK 11+ required). See [developer guide](readme-dev.md) for setup, launch instructions, shortcuts, and regression checks.
+A desktop shape editor built with JavaFX. Draw rectangles, ellipses, and triangles;
+choose custom colors with a color wheel; select, move, group, copy/paste, and undo
+or redo edits. The interface uses JavaFX controls, scene-graph shapes, and CSS.
 
-The JPaint Application does the following:
+## Start
 
-- Draws Rectangle, Ellipse, and Triangle shapes on the canvas
-- Draws the shapes with various colors
-- Draws the shapes with shading types of either, filled in, filled in and outline, or outline
+Install a JDK 17+ (JDK 21 recommended), then run:
 
-** Class: SE 450 – Object Oriented Software Development**
+```bash
+./run.sh
+```
 
-# Design Patterns used:
-[Command Design Pattern](#cmmand)
+The launcher downloads the pinned JavaFX 21.0.8 SDK from Gluon on first use.
+Subsequent launches use the local cache. See [the developer guide](readme-dev.md)
+for setup, testing, packaging, keyboard shortcuts, and offline configuration.
 
-[Null Object Design Pattern](#n-obj)
+```bash
+./run.sh test       # Model regressions; no desktop required
+./run.sh smoke      # JavaFX window, renderer, and picker checks; desktop required
+./run.sh package    # Native app with Java and JavaFX included
+```
 
-[Static Factory Design Pattern](#s-fact)
+On macOS the packaged app is `dist/JPaint.app`. Drawings remain in memory and
+are discarded when the app closes; file saving/export is not yet implemented.
 
-[Strategy Design Pattern](#strat)
+## Branches
 
-[Composite Design Pattern](#compos)
+- `swing-code`: preserved Swing implementation, including the custom color wheel,
+  modernized UI, regression tests, and native packaging.
+- `javafx-rewrite`: JavaFX replacement and its tests.
+- `main`: promoted JavaFX implementation.
 
-[Observer Design Pattern](#observ)
-
-[Singleton Design Pattern](#sngl)
-
-
----
-
----
-
-<a name="cmmand"/> 
-
-## Command Design Pattern
-
-The command pattern encapsulates in an object all the data required for performing a given action (command), including what method to call, the method’s arguments, and the object to which the method belongs
-
-The command pattern is used in the application to store all the information required for executing the actions on the canvas. Undo and Redo is also implemented as a part of the command pattern
-
-<a name="n-obj"/>
-
-## Null Object Design Pattern
-
-The Null object pattern is a design pattern that simplifies the use of dependencies that can be undefined
-A NullShapeStrategy null object was created as one of the strategies belonging to the IDrawable algorithm
-
-<a name="s-fact"/>
-
-## Static Factory Design Pattern
-
-A Static factory a static method that returns an instance of a class.
-
-There are two static factories in this application, DrawableShapeFactory and ShapeTypeFactory
-
-• There is a DrawableShapeFactory which creates the outline, filled-in, outline and filled in shading types for the shapes.
-
-• There is a ShapeTypeFactory which creates the different types of shapes that can be drawn on the canvas.
-
-• These static factories utilize algorithms created with the strategy pattern. DrawableShapeFactory is responsible for creating a new instance of the IDrawable algorithm at runtime.ShapeTypeFactory is responsible for creating a new instance of the IShapeTypeStrategy algorithm at runtime and produce a shape.
-
-Using a factory makes is easy to change the names of the instantiated classes, since the client code does not have to know how to create a concrete class.
-
-<a name="strat"/>
-
-## Strategy Design Pattern
-
-The Strategy Design Pattern defines a family of algorithms, encapsulate each one, and make them interchangeable
-
-This pattern is used in conjunction with the DrawableShapeFactory and ShapeTypeFactory static factories. A new algorithm is selected at runtime.
-
-<a name="compos"/>
-
-## Composite Design Pattern
-
-The composite pattern was used in the application because the commands needed to work the same on groups.
-
-This pattern solved the problem where the difference between individual shapes and shapes that are grouped together needed to be ignored.
-
-<a name="observ"/>
-
-## Observer Design Pattern
-The Observer defines a one-to-many relationship so that when one object changes state, the others are notified and updated
-
-The observer pattern is used in this project to notify the paintCanvas when changes were made to the shapes. The paintCanvas then redraws the shapes on the canvas
-
-<a name="sngl"/>
-
-## Singleton Design Pattern
-
-The singleton pattern is a software design pattern that restricts the instantiation of a class to one "single" instance. This is useful when exactly one object is needed to coordinate actions across the system.
-
-The singleton design pattern is used to create the object used to store the currently selected shapes on the canvas. I choose to use this pattern instead of a static class so that I could use an interface, as well as have access to methods and properties without having to declare all of them static. The SelectBoundingBox class uses this pattern.
+Historical project documents are retained in `Project_information/`; their Swing
+architecture descriptions apply to the preserved branch, not the JavaFX rewrite.

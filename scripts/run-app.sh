@@ -4,8 +4,8 @@ jpaint_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$jpaint_root"
 action="${1:-run}"
 case "$action" in
-  run|build|test|java|package) ;;
-  -h|--help|help) echo 'Usage: ./run.sh [run|build|test|java|package|menu]'; exit 0 ;;
+  run|build|test|smoke|java|package) ;;
+  -h|--help|help) echo 'Usage: ./run.sh [run|build|test|smoke|java|package|menu]'; exit 0 ;;
   *) echo "Unknown action: $action. Use ./run.sh --help." >&2; exit 2 ;;
 esac
 
@@ -19,19 +19,19 @@ use_jdk() {
   runtime="$("$candidate/java" -version 2>&1)" || return 1
   [[ "$version" =~ javac[[:space:]]+([0-9]+) ]] || return 1
   major="${BASH_REMATCH[1]}"
-  (( major >= 11 )) || return 1
+  (( major >= 17 )) || return 1
   [[ "$runtime" =~ version[[:space:]]+\"([0-9]+) ]] || return 1
-  (( ${BASH_REMATCH[1]} >= 11 )) || return 1
+  (( ${BASH_REMATCH[1]} >= 17 )) || return 1
   java_bin="$candidate/java"; javac_bin="$candidate/javac"
 }
 if [[ -n "${JAVA_HOME:-}" ]]; then
   if ! use_jdk "$JAVA_HOME/bin"; then
-    echo "JAVA_HOME does not contain a working JDK 11+: $JAVA_HOME" >&2
+    echo "JAVA_HOME does not contain a working JDK 17+: $JAVA_HOME" >&2
     echo 'Continuing with automatic detection. Use unset JAVA_HOME to remove the invalid setting.' >&2
   fi
 fi
 if [[ -z "$java_bin" && "$(uname -s)" == Darwin ]]; then
-  detected_home="$(/usr/libexec/java_home -v '11+' 2>/dev/null || true)"
+  detected_home="$(/usr/libexec/java_home -v '17+' 2>/dev/null || true)"
   if [[ -n "$detected_home" ]]; then use_jdk "$detected_home/bin" || true; fi
   if [[ -z "$java_bin" ]]; then
     for candidate in /opt/homebrew/opt/openjdk*/bin /usr/local/opt/openjdk*/bin; do
@@ -45,7 +45,7 @@ if [[ -z "$java_bin" ]]; then
 fi
 if [[ -z "$java_bin" ]]; then
   cat >&2 <<'HELP'
-JPaint needs a JDK 11 or newer, including java and javac.
+JPaint needs a JDK 17 or newer, including java and javac.
 On macOS with Homebrew, install one with:
   brew install openjdk@21
 Then run this launcher again; it detects Homebrew JDKs automatically.
@@ -64,34 +64,45 @@ if [[ "$action" == java ]]; then
   "$javac_bin" -version
   exit 0
 fi
+source "$jpaint_root/scripts/javafx.sh"
+module_separator=':'
+case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) module_separator=';' ;; esac
+# Compile in a clean temporary folder; branch switching cannot retain Swing classes.
+compile_dir="$(mktemp -d "$jpaint_root/.javafx/classes.XXXXXX")"
+trap 'rm -rf "$compile_dir"' EXIT
+mkdir -p build
+find src/main/java -name '*.java' -print > build/sources.txt
+"$javac_bin" --release 17 --module-path "$fx_modules" -encoding UTF-8 -d "$compile_dir" @build/sources.txt
+cp -R src/main/resources/. "$compile_dir/"
 mkdir -p build/classes
-find src -name '*.java' -print > build/sources.txt
-"$javac_bin" --release 11 -encoding UTF-8 -d build/classes @build/sources.txt
+# Only generated files are removed here.
+rm -rf build/classes
+mv "$compile_dir" build/classes
+trap - EXIT
 case "$action" in
-  build) echo 'Built JPaint in build/classes' ;;
+  build) echo 'Built JavaFX JPaint in build/classes' ;;
   test)
     mkdir -p build/test-classes
-    "$javac_bin" --release 11 -encoding UTF-8 -cp build/classes -d build/test-classes tests/RegressionTest.java
+    "$javac_bin" --release 17 -encoding UTF-8 -cp build/classes -d build/test-classes tests/RegressionTest.java
     separator=':'
     case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) separator=';' ;; esac
-    "$java_bin" -Djava.awt.headless=true -cp "build/classes${separator}build/test-classes" RegressionTest ;;
+    "$java_bin" -cp "build/classes${separator}build/test-classes" RegressionTest ;;
+  run|smoke)
+    launch_args=()
+    [[ "$action" == smoke ]] && launch_args+=(--smoke-test)
+    exec "$java_bin" --enable-native-access=javafx.graphics --module-path "$fx_modules${module_separator}build/classes" --module jpaint/jpaint.Main "${launch_args[@]}" ;;
   package)
     jdk_bin="$(dirname "$javac_bin")"
-    if [[ ! -x "$jdk_bin/jpackage" || ! -x "$jdk_bin/jar" ]]; then
-      echo 'Packaging requires a full JDK 17+ with jpackage. Set JAVA_HOME to that JDK and try again.' >&2
-      exit 1
-    fi
-    # Build in a fresh directory so stale jars never enter the application image.
+    [[ -x "$jdk_bin/jpackage" && -x "$jdk_bin/jar" ]] || { echo 'Packaging needs a full JDK 17+ with jpackage.' >&2; exit 1; }
     package_work="$(mktemp -d "$jpaint_root/build/package.XXXXXX")"
     trap 'rm -rf "$package_work"' EXIT
     mkdir -p "$package_work/input" "$package_work/output" dist
-    "$jdk_bin/jar" --create --file "$package_work/input/JPaint.jar" --main-class main.Main -C build/classes .
-    echo 'Packaging JPaint with its own Java runtime…'
+    "$jdk_bin/jar" --create --file "$package_work/input/jpaint.jar" --main-class jpaint.Main -C build/classes .
+    echo 'Packaging JPaint with Java and JavaFX…'
     "$jdk_bin/jpackage" --type app-image --name JPaint \
-      --input "$package_work/input" --main-jar JPaint.jar --main-class main.Main \
-      --dest "$package_work/output" --app-version 1.0.0 --vendor 'Moya Richards' \
-      --description 'JPaint shape drawing studio' --java-options '-Dfile.encoding=UTF-8'
-    # Retain existing packages rather than deleting a previous working app.
+      --module-path "$fx_jmods${module_separator}$package_work/input" --module jpaint/jpaint.Main \
+      --dest "$package_work/output" --app-version 2.0.0 --vendor 'Moya Richards' \
+      --description 'JPaint JavaFX drawing studio' --java-options '-Dfile.encoding=UTF-8' --java-options '--enable-native-access=javafx.graphics'
     package_name=JPaint
     [[ "$(uname -s)" == Darwin ]] && package_name=JPaint.app
     if [[ -e "dist/$package_name" ]]; then
@@ -101,10 +112,5 @@ case "$action" in
     fi
     mv "$package_work/output/$package_name" dist/
     echo "App ready: $jpaint_root/dist/$package_name"
-    if [[ "$(uname -s)" == Darwin ]]; then
-      echo 'Launch with: open dist/JPaint.app'
-      echo 'You can also move JPaint.app into Applications.'
-    fi
     ;;
-  run) exec "$java_bin" -cp build/classes main.Main ;;
 esac

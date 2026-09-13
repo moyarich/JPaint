@@ -1,126 +1,113 @@
-# JPaint — developer guide
+# JPaint developer guide — JavaFX
 
-JPaint is a Java Swing desktop drawing app. It has no third-party dependencies,
-web server, package manager, API keys, or database. Drawings are kept in memory;
-closing the app discards them. Saving/exporting files is not implemented.
+## Prerequisites
 
-## Requirements
+Use a JDK 17 or newer; JDK 21 is recommended with the pinned JavaFX 21.0.8 release.
+The launcher detects JAVA_HOME, registered macOS JDKs, Homebrew OpenJDK, or PATH.
+It validates both java and javac. Packaging also needs jar and jpackage.
 
-- A JDK, version 11 or newer (a JRE alone cannot compile the source).
-- A graphical desktop for launching the interface.
-- Bash for the included launcher (macOS, Linux, or Git Bash on Windows).
+On macOS with Homebrew:
 
-Check `java -version` and `javac -version`. Both must resolve to a working JDK.
-If necessary, set JAVA_HOME to your JDK home directory, containing bin/java and
-bin/javac. On macOS, after installing a JDK:
+```bash
+brew install openjdk@21
+./run.sh java
+```
 
-    /usr/libexec/java_home
-    export JAVA_HOME="$(/usr/libexec/java_home)"
+`/usr/libexec/java_home` is a command, not a folder. Do not use `cd` with it.
+For a registered JDK, optionally set:
 
-`/usr/libexec/java_home` is an executable command, not a folder; do not `cd` to it.
-You normally do not need JAVA_HOME: the launcher checks it, registered macOS JDKs,
-Homebrew OpenJDK installations, and PATH. Invalid or old JDKs are skipped with
-an explanation. If no JDK is installed, on macOS with Homebrew run:
+```bash
+export JAVA_HOME="$(/usr/libexec/java_home -v 21)"
+```
 
-    brew install openjdk@21
+## Run and build
 
-Then launch again. The launcher does not install software automatically.
+```bash
+cd /private/var/www/+ai-apps/JPaint
+./run.sh              # Compile and launch JavaFX Studio
+./run.sh build        # Compile only
+./run.sh test         # 26 model regression checks, no graphical desktop needed
+./run.sh smoke        # Native JavaFX UI/renderer/picker smoke checks
+./run.sh java         # Report detected Java tools without compiling
+./run.sh package      # Create a standalone app
+./run.sh menu         # Optional fzf menu, with a built-in Bash fallback
+```
 
-## Launch
+Scripts work from other directories and checkout paths with spaces. Use
+`bash run.sh` if execution permissions are missing. Bash, curl, and unzip are
+needed for automatic setup; no Maven or Gradle installation is necessary.
 
-From Terminal:
+First build downloads the platform-specific JavaFX SDK from Gluon into `.javafx/`.
+Packaging also downloads JavaFX jmods. Downloads are version-pinned and cached;
+the launcher exits on download failures. Network access is needed for first setup.
+For offline builds, supply matching local platform/architecture SDK and jmods:
 
-    cd /private/var/www/+ai-apps/JPaint
-    ./run.sh
+```bash
+export JAVAFX_HOME=/path/to/javafx-sdk-21.0.8
+export JAVAFX_JMODS=/path/to/javafx-jmods-21.0.8
+```
 
-The launcher compiles the source into build/classes and opens the desktop window.
-You can run /absolute/path/to/JPaint/run.sh from another directory too.
-If your checkout is elsewhere, replace the path above with that location.
+The module is `jpaint`, main class `jpaint.Main`. JavaFX modules are supplied on
+the module path. IDE users should configure JDK 17+, the JavaFX SDK module path,
+`src/main/java` as sources and `src/main/resources` as resources. Follow the
+[official JavaFX setup guide](https://openjfx.io/openjfx-docs/) for IDE details.
 
-    ./run.sh build     # Compile only
-    ./run.sh test      # Compile and run headless regression checks
-    ./run.sh java      # Report the detected Java tools without compiling
-    ./run.sh menu      # Optional menu; uses fzf when available, otherwise Bash
-    ./run.sh --help
+## Package and launch the app
 
-The root launcher delegates to scripts/run.sh and scripts/run-app.sh. Both script
-paths also accept direct commands. No fzf installation is required. Commands work
-from other directories and from paths containing spaces.
+```bash
+./run.sh package
+open dist/JPaint.app
+```
 
-To launch without Bash, run these commands from the project root in PowerShell:
+On macOS, double-click `dist/JPaint.app` or move it to Applications. It includes
+Java and JavaFX; no separate runtime is needed. Quit any old app before opening
+the new one. Rebuilding preserves previous packages in `dist/previous.*`.
 
-    New-Item -ItemType Directory -Force build/classes | Out-Null
-    Get-ChildItem src -Recurse -Filter *.java | ForEach-Object { '"' + $_.FullName + '"' } | Set-Content build/sources.txt
-    javac --release 11 -encoding UTF-8 -d build/classes '@build/sources.txt'
-    java -cp build/classes main.Main
+Build on the destination OS and architecture. macOS Apple Silicon was validated;
+Linux/Windows platform paths are supported by the script but have not been tested
+here. Some platform/architecture combinations may need a manually supplied SDK.
+This is an app image, not a DMG or MSI installer. Distribution to other Macs
+requires appropriate signing/notarization; this build is for local use.
 
-In IntelliJ IDEA, open the project, select a JDK 11+ as the project SDK, mark src
-as Sources Root, and run main.Main. No Maven or Gradle setup is needed.
+## Controls
 
-## Drawing and editing
+- Draw, Select, Move are directly accessible mode buttons.
+- Shape and Shading dropdowns change newly drawn shapes.
+- Primary/Secondary open a JavaFX color wheel. Angle selects hue; distance from
+  the center selects saturation. Brightness, RGB, hex, and swatches stay in sync.
+  Arrow keys on the wheel adjust hue/saturation. Apply commits; Cancel preserves
+  the previous color. Primary is fill or outline-only stroke; Secondary is the
+  stroke when using Fill and outline.
+- Drag to draw. Select by clicking the topmost shape or dragging an overlap region.
+- Move drags the current selection; one gesture is one undo step.
+- Group two or more objects; Ungroup releases one level of a nested group.
+- Copy/paste creates independent objects with successive 24-pixel offsets.
+- Escape cancels a gesture and clears selection.
 
-- Choose the mode, shape, shading, and colors in the left sidebar.
-- Click Primary or Secondary to open the color picker. Drag the color wheel (angle selects hue, distance from the center selects saturation),
-  adjust brightness or RGB values, choose palette swatches, or enter a six-digit hex color such as #4F46E5. Press Enter
-  to preview a hex value, then Apply color to apply. Cancel preserves the previous color.
-  Sidebar swatches show the selected colors. Colors affect newly drawn shapes;
-  primary is the fill (or outline-only stroke), secondary is the combined-style outline.
-- Draw: drag across the white canvas; the dashed outline previews the shape.
-- Select: click a shape or drag a region to select overlapping objects.
-- Move: drag to move the current selection. One gesture is one undo step.
-- Copy/paste creates independent shapes, offset on each successive paste.
-- Select two or more objects to group them. Select a group to ungroup it.
-- Scroll to reach the rest of the 1600 × 1000 canvas.
+Use Command on macOS, Ctrl elsewhere: Z undo; Shift+Z/Y redo; C copy; V paste;
+G group; Shift+G ungroup; A select all. Delete/Backspace deletes selected objects.
+The artboard is 1600 × 1000 and scrollable. Drawings are session-only; no persistence
+or file export is implemented.
 
-Shortcuts use Command on macOS and Ctrl on other platforms:
+## Implementation and validation
 
-    Z             Undo
-    Shift+Z / Y   Redo
-    C / V         Copy / Paste
-    G / Shift+G   Group / Ungroup
-    Delete or Backspace   Delete selected objects (no modifier)
+- `src/main/java/jpaint/model`: immutable artwork, groups, selection, clipboard,
+  snapshot-based undo/redo. No UI dependencies.
+- `src/main/java/jpaint/ui`: JavaFX shape renderer and color wheel.
+- `src/main/java/jpaint/Main.java`: JavaFX layout, controls, and mouse/keyboard input.
+- `src/main/resources/jpaint/studio.css`: visual styling.
+- `tests/RegressionTest.java`: movement, nested grouping, layer order, history,
+  clipboard independence, hit testing, reverse drags, and no-op handling.
 
-## Troubleshooting
+The smoke command starts JavaFX, renders artwork and the picker, writes diagnostic
+PPM renders to build/, and exits with an error on failed assertions. It requires a
+desktop session. With JDKs newer than 21, JavaFX 21 may print upstream deprecation
+warnings; prefer JDK 21 if those are distracting.
 
-“Unable to locate a Java Runtime” / JDK requirement message: install a JDK and
-set JAVA_HOME to its home folder. The launcher honors JAVA_HOME when set.
+## Branch history
 
-“HeadlessException” / no display: launch in a desktop session. Use ./run.sh test
-for automated validation on machines without a display.
-
-If scripts are not executable, use `bash run.sh`.
-
-## Code layout and verification
-
-src/main: startup on Swing's event dispatch thread.
-src/view: window, dialogs, keyboard shortcuts, and repaint-based rendering.
-src/controller: button actions and mouse gestures.
-src/model: shapes, groups, selection, clipboard, and undoable commands.
-tests/RegressionTest.java: movement/history, copy/group/paste, delete ordering,
-empty-command history preservation, and offscreen rendering regression checks.
-
-Run ./run.sh test after changing behavior. For visual checks, launch the app,
-draw each shape in both drag directions, change shading/colors, then select,
-move, group, copy/paste, undo/redo, and resize the window. Build output is ignored
-by Git. Existing Project_information files are historical reference material.
-
-## Build a standalone desktop app
-
-Packaging requires a full JDK 17+ containing jpackage (JDK 21 is recommended).
-The app includes its own Java runtime, so people opening the packaged app do not
-need Java installed. Build on the target operating system and architecture.
-
-    ./run.sh package
-
-On macOS the result is dist/JPaint.app. Double-click it in Finder, or run:
-
-    open dist/JPaint.app
-
-You can drag JPaint.app into Applications. Existing packages are moved into a
-unique dist/previous.* folder before replacement. Build output is ignored by Git.
-The optional ./run.sh menu includes Package as well.
-
-This creates an application image, not a DMG installer. It is intended for local
-use; distribution to other Macs requires Apple signing/notarization to avoid
-Gatekeeper warnings. Packaging on Linux or Windows produces a native app folder
-for that platform; it does not cross-compile a macOS app.
+`swing-code` preserves the prior complete Swing app. `javafx-rewrite` contains
+this implementation; `main` is promoted after validation. Switch branches with a
+clean working tree. Build, cache, and packaged app folders are ignored by Git and
+are shared when switching branches. Rebuild after switching; do not assume the
+app in dist/ matches the currently checked-out branch.

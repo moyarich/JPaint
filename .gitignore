@@ -113,3 +113,6 @@ build/
 
 # Packaged desktop application
 dist/
+
+# Downloaded JavaFX SDK and jmods
+.javafx/

@@ -22,12 +22,12 @@ public class ShapeList {
 
         if (!shapeList.contains(item)) {
             shapeList.add(item);
-            System.out.println("add called from " + listLabel + " collection");
+
         }
     }
 
     public IShape get(int index) {
-        System.out.println("get called from " + listLabel + " collection");
+
 
         return shapeList.get(index);
     }
@@ -35,18 +35,17 @@ public class ShapeList {
     public void remove(IShape item) {
         shapeList.remove(item);
 
-        System.out.println("remove called from " + listLabel + " collection");
     }
 
     public boolean contains(IShape item) {
-        System.out.println("contain called from " + listLabel + " collection");
+
 
         return shapeList.contains(item);
     }
 
     public void clear() {
         shapeList.clear();
-        System.out.println("clear called from " + listLabel + " collection");
+
     }
 
     public int size() {

@@ -28,8 +28,6 @@ public class DemoShape {
         drawableShape.paintShape();
 
 
-        System.out.println("shapeProperty" + shapeProperty.toString());
-        System.out.println("shape.getBounds() " + shape.getBounds());
 
         return shape;
     }

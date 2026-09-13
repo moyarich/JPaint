@@ -1,10 +1,10 @@
 package model.dialogs;
 
-import model.ShapeColor;
+import java.awt.Color;
 import model.interfaces.IApplicationState;
 import view.interfaces.IDialogChoice;
 
-public class ChooseSecondaryColorDialog implements IDialogChoice<ShapeColor> {
+public class ChooseSecondaryColorDialog implements IDialogChoice<Color> {
 
     private final IApplicationState applicationState;
 
@@ -23,12 +23,12 @@ public class ChooseSecondaryColorDialog implements IDialogChoice<ShapeColor> {
     }
 
     @Override
-    public ShapeColor[] getDialogOptions() {
-        return ShapeColor.values();
+    public Color[] getDialogOptions() {
+        return new Color[] {Color.BLACK, Color.WHITE, Color.BLUE, Color.RED, Color.GREEN};
     }
 
     @Override
-    public ShapeColor getCurrentSelection() {
+    public Color getCurrentSelection() {
         return applicationState.getActiveSecondaryColor();
     }
 }

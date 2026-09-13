@@ -17,20 +17,22 @@ public class UngroupShapeCommand implements ICommand, IUndoable {
     @Override
     public void run() {
 
+        if (model.collection.ShapeRepository.selectedCollection.getList().stream()
+                .noneMatch(s -> s instanceof model.GroupShape)) return;
         ungroupShape.ungroup();
-        System.out.println("<<-- groupd shape added to command");
+
         CommandHistory.add(this);
     }
 
     @Override
     public void undo() {
         ungroupShape.undo();
-        System.out.println("<<-- group shape undo");
+
     }
 
     @Override
     public void redo() {
         ungroupShape.redo();
-        System.out.println("<<-- group  shape redo");
+
     }
 }

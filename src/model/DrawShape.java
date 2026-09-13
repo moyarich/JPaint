@@ -39,14 +39,15 @@ public class DrawShape implements IShape, IDrawShape, IUndoable {
 
 
         this.paintCanvas = paintCanvas;
-        this.graphics2d = paintCanvas.getGraphics2D();
         designShape();
+        if (ds instanceof DrawShape) {
+            shape = new java.awt.geom.Path2D.Double(((DrawShape) ds).getShape());
+        }
     }
 
 
     public DrawShape(PaintCanvasBase paintCanvas, ShapeProperty shapeProperty) {
         this.paintCanvas = paintCanvas;
-        this.graphics2d = paintCanvas.getGraphics2D();
         this.shapeProperty = shapeProperty;
 
         designShape();
@@ -106,7 +107,6 @@ public class DrawShape implements IShape, IDrawShape, IUndoable {
          //** Clear all selected shapes before drawing new shapes
         ShapeRepository.selectedCollection.clear();
 
-        paintShapeOnCanvas();
         ShapeRepository.shapeCollection.add(this);
     }
 
@@ -145,7 +145,7 @@ public class DrawShape implements IShape, IDrawShape, IUndoable {
     @Override
     public void moveShape(int transformOffsetX, int transformOffsetY) {
 
-        IShape moveShape = new DrawShape(this, paintCanvas);
+
 
         AffineTransform transform = new AffineTransform();
 
@@ -179,7 +179,7 @@ public class DrawShape implements IShape, IDrawShape, IUndoable {
         BasicStroke stroke = new BasicStroke(4.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 10f, dash, 0.0f);
 
 
-        OutlineShapeStrategy drawableShape = new OutlineShapeStrategy(Color.yellow, shape, graphics2d);
+        OutlineShapeStrategy drawableShape = new OutlineShapeStrategy(new Color(79, 70, 229), shape, graphics2d);
         drawableShape.setStroke(stroke);
         drawableShape.paintShape();
     }
@@ -239,6 +239,7 @@ public class DrawShape implements IShape, IDrawShape, IUndoable {
     @Override
     public void deleteShape() {
         ShapeRepository.shapeCollection.remove(this);
+        ShapeRepository.selectedCollection.remove(this);
     }
 
     @Override

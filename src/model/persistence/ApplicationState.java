@@ -1,6 +1,6 @@
 package model.persistence;
 
-import model.ShapeColor;
+import java.awt.Color;
 import model.ShapeShadingType;
 import model.ShapeType;
 import model.dialogs.DialogProvider;
@@ -17,8 +17,8 @@ public class ApplicationState implements IApplicationState, Serializable {
     private final IDialogProvider dialogProvider;
 
     private ShapeType activeShapeType;
-    private ShapeColor activePrimaryColor;
-    private ShapeColor activeSecondaryColor;
+    private Color activePrimaryColor;
+    private Color activeSecondaryColor;
     private ShapeShadingType activeShapeShadingType;
     private StartAndEndPointMode activeStartAndEndPointMode;
 
@@ -59,12 +59,12 @@ public class ApplicationState implements IApplicationState, Serializable {
     }
 
     @Override
-    public ShapeColor getActivePrimaryColor() {
+    public Color getActivePrimaryColor() {
         return activePrimaryColor;
     }
 
     @Override
-    public ShapeColor getActiveSecondaryColor() {
+    public Color getActiveSecondaryColor() {
         return activeSecondaryColor;
     }
 
@@ -80,8 +80,8 @@ public class ApplicationState implements IApplicationState, Serializable {
 
     private void setDefaults() {
         activeShapeType = ShapeType.ELLIPSE;
-        activePrimaryColor = ShapeColor.BLUE;
-        activeSecondaryColor = ShapeColor.GREEN;
+        activePrimaryColor = Color.BLUE;
+        activeSecondaryColor = Color.GREEN;
         activeShapeShadingType = ShapeShadingType.FILLED_IN;
         activeStartAndEndPointMode = StartAndEndPointMode.DRAW;
     }

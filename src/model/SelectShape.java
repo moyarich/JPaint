@@ -20,7 +20,6 @@ public class SelectShape implements IUndoable {
     private IApplicationState appState;
 
     public SelectShape(Point startPoint, Point endPoint, PaintCanvasBase paintCanvas, IApplicationState appState) {
-        this.graphics2d = paintCanvas.getGraphics2D();
         this.paintCanvas = paintCanvas;
         this.appState = appState;
 
@@ -47,7 +46,7 @@ public class SelectShape implements IUndoable {
         /*
          * Draw Outlined rectangular box - repaint happens really quickly so this might be pointless code
          */
-        selectBoundingBox.drawBoundingBox(graphics2d);
+
 
         /*
          * Select All shapes within the bounding box to the select shape collection
@@ -63,12 +62,11 @@ public class SelectShape implements IUndoable {
 
         boolean result = !ShapeRepository.shapeCollection.getList().isEmpty();
         if (result) {
-            System.out.println("------------------------------------------");
-            System.out.println("------------------------------------------");
 
-            System.out.println("<<-- Shape selected - ShapeRepository.selectedCollection --- " + ShapeRepository.selectedCollection.toString());
-            System.out.println("------------------------------------------");
-            System.out.println("------------------------------------------");
+
+
+
+
         }
 
         paintCanvas.repaint();
@@ -77,13 +75,12 @@ public class SelectShape implements IUndoable {
     public void undo() {
         ShapeRepository.selectedCollection.clear();
 
-        System.out.println("<<-- ShapeRepository.selectedCollection unselected " + ShapeRepository.selectedCollection.toString());
         paintCanvas.repaint();
     }
 
     public void redo() {
         operate();
-        System.out.println("<<-- ShapeRepository.selectedCollection reselected " + ShapeRepository.selectedCollection.toString());
+
         paintCanvas.repaint();
     }
 }

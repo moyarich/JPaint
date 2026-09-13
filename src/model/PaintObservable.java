@@ -20,7 +20,7 @@ public class PaintObservable implements IObservable {
     public void addObserver(IObserver observer) {
         if (!observerList.contains(observer)) {
             observerList.add(observer);
-            System.out.println("add called from PaintObservable");
+
         }
     }
 
@@ -28,7 +28,6 @@ public class PaintObservable implements IObservable {
     public void removeObserver(IObserver observer) {
         observerList.remove(observer);
 
-        System.out.println("remove called from PaintObservable");
     }
 
     @Override
@@ -41,6 +40,6 @@ public class PaintObservable implements IObservable {
     @Override
     public void clear() {
         observerList.clear();
-        System.out.println("clear called from PaintObservable");
+
     }
 }

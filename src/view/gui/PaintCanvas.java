@@ -1,56 +1,59 @@
 package view.gui;
 
+import model.*;
 import model.collection.ShapeRepository;
+import model.interfaces.IApplicationState;
 import model.interfaces.IObserver;
 import model.interfaces.IShape;
+import model.mode.StartAndEndPointMode;
+import model.util.ShapeProperty;
 import view.interfaces.PaintCanvasBase;
-
 import java.awt.*;
-import java.util.List;
 
 public class PaintCanvas extends PaintCanvasBase implements IObserver {
-
-
-    /**
-     * Cannot call getGraphics on a Component. It may return null or a Graphics object that is in any other way "invalid"
-     *
-     * @return Graphics2D
-     */
-    public Graphics2D getGraphics2D() {
-        return (Graphics2D) getGraphics();
+    private Shape preview;
+    private Color previewColor;
+    public PaintCanvas() {
+        setOpaque(true);
+        setBackground(Color.WHITE);
+        setFocusable(true);
+        setPreferredSize(new Dimension(1600, 1000));
+        setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+        getAccessibleContext().setAccessibleName("Drawing canvas");
     }
-
-    /**
-     * Print the shapes in the list on the canvas
-     *
-     * @author Moya Richards
-     */
-    protected void paintComponent(Graphics g) {
+    /** Legacy API; model operations no longer acquire a transient graphics context. */
+    public Graphics2D getGraphics2D() { return (Graphics2D) getGraphics(); }
+    public void setPreview(Point start, Point end, IApplicationState state) {
+        ShapeProperty properties = new ShapeProperty(start, end);
+        properties.setShapeType(state.getActiveStartAndEndPointMode() == StartAndEndPointMode.SELECT
+                ? ShapeType.RECTANGLE : state.getActiveShapeType());
+        preview = ShapeTypeFactory.build(properties);
+        previewColor = state.getActiveStartAndEndPointMode() == StartAndEndPointMode.SELECT
+                ? new Color(79, 70, 229) : state.getActivePrimaryColor();
+        repaint();
+    }
+    public void clearPreview() { preview = null; repaint(); }
+    @Override protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-
-        Graphics2D g2 = (Graphics2D) g;
-        List<IShape> shapeCollectionList = ShapeRepository.shapeCollection.getList();
-        List<IShape> selectedCollectionList = ShapeRepository.selectedCollection.getList();
-
-
-        for (IShape shapeItem : shapeCollectionList) {
-            //** Must reset Graphics2D, since the stored PaintCanvas was destroyed on repaint
-            shapeItem.setGraphics2d(g2);
-
-            //** draw the shape.  It is already transformed, if the "move command' was selected
-            shapeItem.paintShapeOnCanvas();
-
-            //highlight selected Shape
-            if (selectedCollectionList.contains(shapeItem)) {
-                shapeItem.highlightShape();
+        Graphics2D g2 = (Graphics2D) g.create();
+        try {
+            g2.setColor(getBackground());
+            g2.fillRect(0, 0, getWidth(), getHeight());
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            for (IShape shape : ShapeRepository.shapeCollection.getList()) {
+                shape.setGraphics2d(g2);
+                shape.paintShapeOnCanvas();
             }
-        }
-
-        System.out.println("---repaint() called--- shapeCollectionList: " + ShapeRepository.shapeCollection.size() + "  " + shapeCollectionList);
+            for (IShape shape : ShapeRepository.selectedCollection.getList()) {
+                shape.setGraphics2d(g2);
+                shape.highlightShape();
+            }
+            if (preview != null) {
+                g2.setColor(previewColor);
+                g2.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10, new float[]{6, 4}, 0));
+                g2.draw(preview);
+            }
+        } finally { g2.dispose(); }
     }
-
-    @Override
-    public void update() {
-        this.repaint();
-    }
+    @Override public void update() { repaint(); }
 }

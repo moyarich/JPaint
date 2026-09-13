@@ -38,8 +38,6 @@ public class DesignRightTriangleShapeStrategy implements IShapeTypeStrategy {
         triangle.closePath();
 
 
-        System.out.println("path : " + this);
-        System.out.println("triangle : " + triangle);
 
 
         return triangle;

@@ -19,10 +19,10 @@ public class GroupShapeCommand implements ICommand, IUndoable {
 
     @Override
     public void run() {
-        boolean result = !ShapeRepository.selectedCollection.getList().isEmpty();
+        boolean result = ShapeRepository.selectedCollection.size() >= 2;
         if (result) {
             groupShape.group();
-            System.out.println("<<-- groupd shape added to command");
+
             CommandHistory.add(this);
         }
     }
@@ -30,12 +30,12 @@ public class GroupShapeCommand implements ICommand, IUndoable {
     @Override
     public void undo() {
         groupShape.undo();
-        System.out.println("<<-- group shape undo");
+
     }
 
     @Override
     public void redo() {
         groupShape.redo();
-        System.out.println("<<-- group  shape redo");
+
     }
 }

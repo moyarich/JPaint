@@ -29,8 +29,8 @@ public class DrawMode implements IMode {
 
         ShapeType shapeType = appState.getActiveShapeType();
         ShapeShadingType shadingType = appState.getActiveShapeShadingType();
-        Color primaryColor = ShapeAwtColor.getColor(appState.getActivePrimaryColor());
-        Color secondaryColor = ShapeAwtColor.getColor(appState.getActiveSecondaryColor());
+        Color primaryColor = appState.getActivePrimaryColor();
+        Color secondaryColor = appState.getActiveSecondaryColor();
 
         shapeProperty = new ShapeProperty(startPoint, endPoint);
         shapeProperty

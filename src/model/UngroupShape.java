@@ -18,7 +18,7 @@ public class UngroupShape implements IUndoable {
     public UngroupShape(PaintCanvasBase paintCanvas) {
         this.paintCanvas = paintCanvas;
 
-        List<IShape> shapeCollectionList = ShapeRepository.shapeCollection.getList();
+        List<IShape> shapeCollectionList = ShapeRepository.selectedCollection.getList();
 
         SelectBoundingBox selectBoundingBox = SelectBoundingBox.getInstance();
         Shape selectBoundingBoxShape = selectBoundingBox.getBoundingBox();
@@ -26,7 +26,6 @@ public class UngroupShape implements IUndoable {
         groupShapeCollectionList = shapeCollectionList.stream()
                 .filter(ishape -> ishape instanceof GroupShape)
                 .map(p -> (GroupShape) p)
-                .filter(gs -> gs.detectCollision(selectBoundingBoxShape))
                 .collect(Collectors.toList());
     }
 

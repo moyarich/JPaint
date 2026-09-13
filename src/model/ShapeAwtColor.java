@@ -12,7 +12,7 @@ import java.util.EnumMap;
 public class ShapeAwtColor {
     private static EnumMap<ShapeColor, java.awt.Color> map = prepareMap();
 
-    private static EnumMap prepareMap() {
+    private static EnumMap<ShapeColor, Color> prepareMap() {
         EnumMap<ShapeColor, java.awt.Color> map = new EnumMap<ShapeColor, Color>(ShapeColor.class);
 
         map.put(ShapeColor.BLACK, Color.BLACK);

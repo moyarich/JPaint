@@ -107,3 +107,9 @@ fabric.properties
 hs_err_pid*
 
 # End of https://www.gitignore.io/api/java,intellij
+
+# Local build output
+build/
+
+# Packaged desktop application
+dist/

@@ -23,7 +23,7 @@ public class SelectShapeCommand implements ICommand {
 
         boolean result = !ShapeRepository.selectedCollection.getList().isEmpty();
         if (result) {
-            System.out.println("<<-- selected shape added to command");
+
         }
     }
 

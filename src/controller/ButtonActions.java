@@ -35,27 +35,25 @@ public class ButtonActions implements IJPaintController {
 
 
     public void processUndo() {
-        System.out.println("<<--button clicked UNDO");
+
 
         Undo undo = new Undo(paintObservable);
         UndoCommand undoCommand = new UndoCommand(undo);
         undoCommand.run();
 
-        System.out.println("<<-- undo stack " + CommandHistory.getUndoStack());
     }
 
     public void processRedo() {
-        System.out.println("<<--button clicked REDO");
+
 
         Redo redo = new Redo(paintObservable);
         RedoCommand redoCommand = new RedoCommand(redo);
         redoCommand.run();
 
-        System.out.println("<<-- redo stack " + CommandHistory.getRedoStack());
     }
 
     public void processCopy() {
-        System.out.println("<<--button clicked COPY");
+
 
         CopyShape copyShape = new CopyShape(paintCanvas);
         CopyShapeCommand copyShapeCommand = new CopyShapeCommand(copyShape);
@@ -63,7 +61,7 @@ public class ButtonActions implements IJPaintController {
     }
 
     public void processPaste() {
-        System.out.println("<<--button clicked PASTE");
+
 
         PasteShape pasteShape = new PasteShape(paintCanvas);
         PasteShapeCommand pasteShapeCommand = new PasteShapeCommand(pasteShape);
@@ -71,7 +69,7 @@ public class ButtonActions implements IJPaintController {
     }
 
     public void processDelete() {
-        System.out.println("<<--button clicked DELETE");
+
 
         DeleteShape deleteShape = new DeleteShape(paintCanvas);
         DeleteShapeCommand deleteShapeCommand = new DeleteShapeCommand(deleteShape);
@@ -80,7 +78,7 @@ public class ButtonActions implements IJPaintController {
 
 
     public void processGroup() {
-        System.out.println("<<--button clicked GROUP");
+
 
         GroupShape groupShape = new GroupShape(paintCanvas);
         GroupShapeCommand groupShapeCommand = new GroupShapeCommand(groupShape);
@@ -94,7 +92,6 @@ public class ButtonActions implements IJPaintController {
      */
     public void processUngroup() {
 
-        System.out.println("<<--button clicked UNGROUP");
 
         UngroupShape ungroupShape = new UngroupShape(paintCanvas);
         UngroupShapeCommand ungroupShapeCommand = new UngroupShapeCommand(ungroupShape);

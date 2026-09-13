@@ -1,6 +1,6 @@
 package model.interfaces;
 
-import model.ShapeColor;
+import java.awt.Color;
 import model.ShapeShadingType;
 import model.ShapeType;
 import model.mode.StartAndEndPointMode;
@@ -18,9 +18,9 @@ public interface IApplicationState {
 
     ShapeType getActiveShapeType();
 
-    ShapeColor getActivePrimaryColor();
+    Color getActivePrimaryColor();
 
-    ShapeColor getActiveSecondaryColor();
+    Color getActiveSecondaryColor();
 
     ShapeShadingType getActiveShapeShadingType();
 

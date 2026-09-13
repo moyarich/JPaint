@@ -18,8 +18,13 @@ public class Main {
 
 
     public static void main(String[] args) {
+        javax.swing.SwingUtilities.invokeLater(Main::launch);
+    }
+
+    private static void launch() {
+        view.gui.StudioTheme.install();
         PaintCanvasBase paintCanvas = new PaintCanvas();
-        IGuiWindow guiWindow = new GuiWindow(paintCanvas);
+        GuiWindow guiWindow = new GuiWindow(paintCanvas);
         IUiModule uiModule = new Gui(guiWindow);
         ApplicationState appState = new ApplicationState(uiModule);
         IJPaintController controller = new JPaintController(uiModule, appState);
@@ -30,6 +35,7 @@ public class Main {
 
         IJPaintController buttonActions = new ButtonActions(uiModule, paintCanvas, paintObservable);
 
+        guiWindow.setApplicationState(appState);
         controller.setup();
         buttonActions.setup();
 
@@ -40,6 +46,7 @@ public class Main {
         PaintCanvasMouseAdapter paintCanvasMouseAdapter = new PaintCanvasMouseAdapter(paintCanvas, appState);
         paintCanvas.addMouseListener(paintCanvasMouseAdapter);
         paintCanvas.addMouseMotionListener(paintCanvasMouseAdapter);
+        guiWindow.setVisible(true);
         //--------------------------------------------------------------
 
     }

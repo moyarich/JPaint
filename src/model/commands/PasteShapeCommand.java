@@ -22,7 +22,7 @@ public class PasteShapeCommand implements ICommand, IUndoable {
         boolean result = !ShapeRepository.clipboardShapeCollection.getList().isEmpty();
         if (result) {
             pasteShape.paste();
-            System.out.println("<<-- pasted shape added to command");
+
             CommandHistory.add(this);
         }
     }
@@ -30,12 +30,12 @@ public class PasteShapeCommand implements ICommand, IUndoable {
     @Override
     public void undo() {
         pasteShape.undo();
-        System.out.println("<<-- pasted shape undo");
+
     }
 
     @Override
     public void redo() {
         pasteShape.redo();
-        System.out.println("<<-- pasted shape redo");
+
     }
 }

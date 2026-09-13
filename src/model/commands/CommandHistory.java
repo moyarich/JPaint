@@ -25,7 +25,6 @@ public class CommandHistory {
             redoStack.push(c);
             c.undo();
 
-            System.out.println("undo called from commandHistory");
         }
 
 
@@ -40,7 +39,6 @@ public class CommandHistory {
             c.redo();
         }
 
-        System.out.println("redo called from commandHistory");
         return result;
     }
 

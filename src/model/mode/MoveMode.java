@@ -41,6 +41,6 @@ public class MoveMode implements IMode {
     public void lockMovement(Point endPoint) {
         moveShape.setEndPoint(endPoint);
         MoveShapeCommand moveShapeCommand = new MoveShapeCommand(moveShape);
-        moveShapeCommand.run();
+        if (moveShape.hasShapes()) model.commands.CommandHistory.add(moveShapeCommand);
     }
 }

@@ -1,6 +1,6 @@
 package model.dialogs;
 
-import model.ShapeColor;
+import java.awt.Color;
 import model.ShapeShadingType;
 import model.ShapeType;
 import model.interfaces.IApplicationState;
@@ -10,8 +10,8 @@ import view.interfaces.IDialogChoice;
 
 public class DialogProvider implements IDialogProvider {
     private final IDialogChoice<ShapeType> chooseShapeDialog;
-    private final IDialogChoice<ShapeColor> choosePrimaryColorDialog;
-    private final IDialogChoice<ShapeColor> chooseSecondaryColorDialog;
+    private final IDialogChoice<Color> choosePrimaryColorDialog;
+    private final IDialogChoice<Color> chooseSecondaryColorDialog;
     private final IDialogChoice<ShapeShadingType> chooseShadingTypeDialog;
     private final IDialogChoice<StartAndEndPointMode> chooseStartAndEndPointModeDialog;
     private final IApplicationState applicationState;
@@ -31,12 +31,12 @@ public class DialogProvider implements IDialogProvider {
     }
 
     @Override
-    public IDialogChoice<ShapeColor> getChoosePrimaryColorDialog() {
+    public IDialogChoice<Color> getChoosePrimaryColorDialog() {
         return choosePrimaryColorDialog;
     }
 
     @Override
-    public IDialogChoice<ShapeColor> getChooseSecondaryColorDialog() {
+    public IDialogChoice<Color> getChooseSecondaryColorDialog() {
         return chooseSecondaryColorDialog;
     }
 

@@ -1,6 +1,6 @@
 package model.interfaces;
 
-import model.ShapeColor;
+import java.awt.Color;
 import model.ShapeShadingType;
 import model.ShapeType;
 import model.mode.StartAndEndPointMode;
@@ -10,9 +10,9 @@ public interface IDialogProvider {
 
     IDialogChoice<ShapeType> getChooseShapeDialog();
 
-    IDialogChoice<ShapeColor> getChoosePrimaryColorDialog();
+    IDialogChoice<Color> getChoosePrimaryColorDialog();
 
-    IDialogChoice<ShapeColor> getChooseSecondaryColorDialog();
+    IDialogChoice<Color> getChooseSecondaryColorDialog();
 
     IDialogChoice<ShapeShadingType> getChooseShadingTypeDialog();
 

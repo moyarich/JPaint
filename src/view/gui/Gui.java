@@ -23,8 +23,13 @@ public class Gui implements IUiModule {
     }
 
     @Override
+    @SuppressWarnings("unchecked") // Options and selection are supplied by the same typed dialog.
     public <T> T getDialogResponse(IDialogChoice dialogSettings) {
-        Object selectedValue = JOptionPane.showInputDialog(null,
+        if (dialogSettings.getCurrentSelection() instanceof java.awt.Color) {
+            return (T) ColorPicker.show((java.awt.Component) gui, dialogSettings.getDialogTitle(),
+                    (java.awt.Color) dialogSettings.getCurrentSelection());
+        }
+        Object selectedValue = JOptionPane.showInputDialog((java.awt.Component) gui,
                 dialogSettings.getDialogText(), dialogSettings.getDialogTitle(),
                 JOptionPane.PLAIN_MESSAGE,
                 null,

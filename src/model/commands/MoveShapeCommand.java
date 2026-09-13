@@ -23,7 +23,7 @@ public class MoveShapeCommand implements ICommand, IUndoable {
         boolean result = !ShapeRepository.selectedCollection.getList().isEmpty();
         if (result) {
             moveShape.move();
-            System.out.println("<<-- moved shape added to command");
+
             CommandHistory.add(this);
         }
     }
@@ -31,12 +31,12 @@ public class MoveShapeCommand implements ICommand, IUndoable {
     @Override
     public void undo() {
         moveShape.undo();
-        System.out.println("<<-- move shape undo");
+
     }
 
     @Override
     public void redo() {
         moveShape.redo();
-        System.out.println("<<-- move  shape redo");
+
     }
 }

@@ -72,7 +72,8 @@ public class ShapeProperty {
     }
 
     public ShapeProperty setStartPoint(Point startPoint) {
-        this.startPoint = startPoint;
+        this.startPoint = new Point(startPoint);
+        calculateProperty();
         return this;
     }
 
@@ -81,7 +82,8 @@ public class ShapeProperty {
     }
 
     public ShapeProperty setEndPoint(Point endPoint) {
-        this.endPoint = endPoint;
+        this.endPoint = new Point(endPoint);
+        calculateProperty();
         return this;
     }
 

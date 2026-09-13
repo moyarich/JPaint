@@ -14,13 +14,14 @@ public class DeleteShape implements IUndoable {
     private PaintCanvasBase paintCanvas;
 
 
+    private final List<IShape> originalOrder = new ArrayList<>(ShapeRepository.shapeCollection.getList());
     private List<IShape> deletedShapes = new ArrayList<IShape>();
 
     public DeleteShape(PaintCanvasBase paintCanvas) {
         this.paintCanvas = paintCanvas;
 
         deletedShapes.addAll(ShapeRepository.selectedCollection.getList());
-        System.out.println("deleteShape constructor called");
+
     }
 
     public void delete() {
@@ -33,9 +34,8 @@ public class DeleteShape implements IUndoable {
     @Override
     public void undo() {
 
-        for (IShape deletedShape : deletedShapes) {
-            deletedShape.create();
-        }
+        ShapeRepository.shapeCollection.clear();
+        ShapeRepository.shapeCollection.addAll(originalOrder);
 
         paintCanvas.repaint();
     }

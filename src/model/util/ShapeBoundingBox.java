@@ -30,6 +30,7 @@ public class ShapeBoundingBox implements IBoundingBox {
      * Rect = (xMin, yMin, xMax - xMin, yMax - yMin);
      */
     public Shape generateFromList(List<Shape> shapeList) {
+        if (shapeList.isEmpty()) return new Rectangle();
         List<Integer> listStartXCoord = new ArrayList<>();
         List<Integer> listStartYCoord = new ArrayList<>();
 

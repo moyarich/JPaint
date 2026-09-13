@@ -1,6 +1,8 @@
-# IPaint Application
+# JPaint Application
 
-The IPaint Application does the following:
+Launch with `./run.sh` (JDK 11+ required). See [developer guide](readme-dev.md) for setup, launch instructions, shortcuts, and regression checks.
+
+The JPaint Application does the following:
 
 - Draws Rectangle, Ellipse, and Triangle shapes on the canvas
 - Draws the shapes with various colors

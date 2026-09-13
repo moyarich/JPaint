@@ -30,13 +30,18 @@ public class PasteShape implements IUndoable {
             shapeList.add(pastedShape);
             pastedShapes.add(pastedShape);
         }
+        clipBoardList.clear();
+        for (IShape shape : pastedShapes) clipBoardList.add(shape.copyShape());
+        ShapeRepository.selectedCollection.clear();
+        ShapeRepository.selectedCollection.addAll(pastedShapes);
         paintCanvas.repaint();
     }
 
     @Override
     public void undo() {
         for (IShape pastedShape : pastedShapes) {
-            shapeList.removeAll(pastedShape.getNodeList());
+            shapeList.remove(pastedShape);
+            ShapeRepository.selectedCollection.remove(pastedShape);
         }
         paintCanvas.repaint();
     }

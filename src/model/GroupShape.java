@@ -38,7 +38,6 @@ public class GroupShape implements IShape, IUndoable {
      */
     public GroupShape(GroupShape groupShape) {
         this.paintCanvas = groupShape.paintCanvas;
-        this.graphics2d = groupShape.paintCanvas.getGraphics2D();
 
         for (IShape groupedShapes : groupShape.getList()) {
             this.add(groupedShapes.copyShape());
@@ -48,7 +47,6 @@ public class GroupShape implements IShape, IUndoable {
 
     public GroupShape(PaintCanvasBase paintCanvas) {
         this.paintCanvas = paintCanvas;
-        this.graphics2d = paintCanvas.getGraphics2D();
     }
 
     /**
@@ -70,7 +68,7 @@ public class GroupShape implements IShape, IUndoable {
      * @param iShape the group item to remove
      */
     public void remove(IShape iShape) {
-        groupedShapes.add(iShape);
+        groupedShapes.remove(iShape);
         this.createBoundingBox();
     }
 
@@ -102,10 +100,10 @@ public class GroupShape implements IShape, IUndoable {
             create();
 
             //** Draw the outline of the selected shapes boundingbox on the canvas
-            selectBoundingBox.drawBoundingBox(graphics2d);
+
 
             //** Draw the outline of the group's boundingbox on the canvas
-            drawBoundingBox();
+            paintCanvas.repaint();
         }
     }
 
@@ -161,6 +159,7 @@ public class GroupShape implements IShape, IUndoable {
         for (IShape iShape : this.groupedShapes) {
             //remove the individual shapes, add them as one unit
             ShapeRepository.shapeCollection.remove(iShape);
+            ShapeRepository.selectedCollection.remove(iShape);
         }
 
         //** Recreate the group's bounding box
@@ -244,7 +243,6 @@ public class GroupShape implements IShape, IUndoable {
         createBoundingBox();
         boolean collisionDetected = ShapeCollision.detect(boundingBox, otherShape);
 
-        System.out.println("<<-- group -- collisionDetected " + collisionDetected);
         return collisionDetected;
     }
 
@@ -270,7 +268,6 @@ public class GroupShape implements IShape, IUndoable {
         for (IShape iShape : groupedShapes) {
             gs.add(iShape.pasteShape());
         }
-        gs.create();
         return gs;
     }
 

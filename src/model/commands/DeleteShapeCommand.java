@@ -16,20 +16,21 @@ public class DeleteShapeCommand implements ICommand, IUndoable {
 
     @Override
     public void run() {
+        if (model.collection.ShapeRepository.selectedCollection.size() == 0) return;
         deleteShape.delete();
-        System.out.println("<<-- deleted shape added to command");
+
         CommandHistory.add(this);
     }
 
     @Override
     public void undo() {
         deleteShape.undo();
-        System.out.println("<<-- deleted shape undo");
+
     }
 
     @Override
     public void redo() {
         deleteShape.redo();
-        System.out.println("<<-- deleted shape redo");
+
     }
 }

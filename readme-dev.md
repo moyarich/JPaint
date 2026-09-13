@@ -111,3 +111,28 @@ this implementation; `main` is promoted after validation. Switch branches with a
 clean working tree. Build, cache, and packaged app folders are ignored by Git and
 are shared when switching branches. Rebuild after switching; do not assume the
 app in dist/ matches the currently checked-out branch.
+
+## Installed JavaFX SDK on this Mac
+
+The launcher automatically prefers
+`/Library/Java/JavaVirtualMachines/javafx-sdk-26.0.2` when present, with the
+installed JDK 26. An explicit JAVAFX_HOME takes precedence. Other machines keep
+the JavaFX 21.0.8 download fallback. The SDK's javafx.properties determines the
+version of jmods used for packaging, so JavaFX versions are never mixed.
+
+To let the launcher select the compatible installation:
+
+```bash
+unset JAVAFX_HOME
+./run.sh test
+./run.sh package
+```
+
+JavaFX 26 needs a newer JDK than the fallback SDK; use JDK 26. The launcher checks
+that the selected JDK can load the SDK before building.
+
+The supplied system SDK contains Intel libraries. On this Apple Silicon runtime,
+the launcher leaves that folder untouched and caches the Apple Silicon SDK of the
+same version instead. Do not explicitly export the Intel SDK as JAVAFX_HOME for
+an ARM JDK; an explicit architecture mismatch produces a clear error. Use
+`unset JAVAFX_HOME` and run the launcher to select the compatible cached version.

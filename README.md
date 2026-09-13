@@ -12,7 +12,8 @@ Install a JDK 17+ (JDK 21 recommended), then run:
 ./run.sh
 ```
 
-The launcher downloads the pinned JavaFX 21.0.8 SDK from Gluon on first use.
+The launcher prefers the installed JavaFX 26.0.2 SDK on this Mac (use JDK 26).
+Otherwise it downloads the pinned JavaFX 21.0.8 SDK from Gluon on first use.
 Subsequent launches use the local cache. See [the developer guide](readme-dev.md)
 for setup, testing, packaging, keyboard shortcuts, and offline configuration.
 
